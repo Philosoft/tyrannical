@@ -37,6 +37,13 @@ local function get_class(c)
     return awful.client.property.get(c, "overwrite_class") or c.class or "N/A"
 end
 
+local index = 1
+
+local function add_tag(name, tag)
+	awful.tag.add(index .. ":" .. name, tag);
+	index = index + 1
+end
+
 --Load tags, this cannot be undone
 local function load_tags(tyrannical_tags)
     for k,v in ipairs(tyrannical_tags) do
@@ -47,12 +54,12 @@ local function load_tags(tyrannical_tags)
                 for k2,v2 in pairs(screens) do
                     if v2 <= capi.screen.count() then
                         v.screen = v2
-                        awful.tag.add(v.name,v)
+                        add_tag(v.name,v)
                     end
                 end
                 v.screen = screens
             elseif (v.screen or 1) <= capi.screen.count() then
-                awful.tag.add(v.name,v)
+                add_tag(v.name,v)
             end
         elseif v.volatile == nil then
             v.volatile = true
@@ -114,7 +121,7 @@ local function apply_properties(c,override,normal)
         awful.client["set"..(props.slave and "slave" or "master")](c, true)
     end
     if props.new_tag then
-        ret = c:tags({awful.tag.add(type(props.new_tag)=="table" and props.new_tag.name or c.class,type(props.new_tag)=="table" and props.new_tag or {})})
+        ret = c:tags({add_tag(type(props.new_tag)=="table" and props.new_tag.name or c.class,type(props.new_tag)=="table" and props.new_tag or {})})
     --Add to the current tag if the client is intrusive, ignore exclusive
     elseif props.intrusive == true or (settings.force_odd_as_intrusive and c.type ~= "normal") then
         local tag = awful.tag.selected(c.screen) or awful.tag.viewonly(awful.tag.gettags(c.screen)[1]) or awful.tag.selected(c.screen)
@@ -155,7 +162,7 @@ local function match_client(c, startup)
             tag.screen,match = (tag.screen <= capi.screen.count()) and tag.screen or mouse_s,tag.instances[tag.screen]
             local max_clients = match and (type(prop(match,"max_clients")) == "function" and prop(match,"max_clients")(c,match) or prop(match,"max_clients")) or 999
             if (not match and not (fav_scr == true and mouse_s ~= tag.screen)) or (max_clients <= #match:clients()) then
-                awful.tag.setproperty(awful.tag.add(tag.name,tag),"volatile",match and (max_clients ~= nil) or tag.volatile)
+                awful.tag.setproperty(add_tag(tag.name,tag),"volatile",match and (max_clients ~= nil) or tag.volatile)
             end
             tags_src[tag.screen],fav_scr = tags_src[tag.screen] or {},fav_scr or (tag.screen == mouse_s) --Reset if a better screen is found
             tags_src[tag.screen][#tags_src[tag.screen]+1] = tag.instances[tag.screen]
@@ -185,7 +192,7 @@ local function match_client(c, startup)
     end
     --Last resort, create a new tag
     c_rules.class[low_c] = c_rules.class[low_c] or {tags={},properties={}}
-    local tmp,tag = c_rules.class[low_c],awful.tag.add(get_class(c),{name=get_class(c),volatile=true,exclusive=true,screen=(c.screen <= capi.screen.count())
+    local tmp,tag = c_rules.class[low_c],add_tag(get_class(c),{name=get_class(c),volatile=true,exclusive=true,screen=(c.screen <= capi.screen.count())
       and c.screen or 1,layout=settings.default_layout or awful.layout.suit.max})
     tmp.tags[#tmp.tags+1] = {name=get_class(c),instances = setmetatable({[c.screen]=tag}, { __mode = 'v' }),volatile=true,screen=c.screen,exclusive=true}
     c:tags({tag})
