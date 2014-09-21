@@ -1,3 +1,7 @@
+# Differences from original tyrannical
+
+1 and only - naive tag enumerating implemetation for 1 monitor configuration,
+
 Tyrannical—A simple tag managment engine for Awesome
 -----------------------------------------------------
 
